@@ -2,6 +2,7 @@
 AWS credential helper for GCP.
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/porkbeans/gcp2aws)](https://goreportcard.com/report/github.com/porkbeans/gcp2aws)
+[![Build](https://github.com/porkbeans/gcp2aws/actions/workflows/build.yml/badge.svg)](https://github.com/porkbeans/gcp2aws/actions/workflows/build.yml)
 
 # Requirements
 - GCP
