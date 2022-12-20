@@ -144,3 +144,5 @@ terraform.rc
 
 
 .terraform.lock.hcl
+
+dist/
