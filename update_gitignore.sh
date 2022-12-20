@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-gibo dump JetBrains Go >.gitignore
+gibo dump JetBrains Go Terraform >.gitignore
