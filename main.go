@@ -2,11 +2,15 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -75,14 +79,6 @@ func extractEmailFromIdToken(idToken string) (string, error) {
 	return body.Email, nil
 }
 
-type TemporaryCredential struct {
-	Version         int    `json:"Version"`
-	AccessKeyId     string `json:"AccessKeyId"`
-	SecretAccessKey string `json:"SecretAccessKey"`
-	SessionToken    string `json:"SessionToken"`
-	Expiration      string `json:"Expiration"`
-}
-
 func assumeRole(ctx context.Context, roleArn string, roleSessionName string, token string, duration time.Duration) (*types.Credentials, error) {
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
@@ -108,6 +104,69 @@ func assumeRole(ctx context.Context, roleArn string, roleSessionName string, tok
 	return resp.Credentials, nil
 }
 
+func getCacheFilename(roleArn string) (string, error) {
+	baseCacheDir, err := os.UserCacheDir()
+	if err != nil {
+		return "", err
+	}
+
+	cacheDir := baseCacheDir + "/gcp2aws"
+	err = os.MkdirAll(cacheDir, 0700)
+	if err != nil {
+		return "", err
+	}
+
+	roleSum := sha256.Sum256([]byte(roleArn))
+	filename := cacheDir + "/" + hex.EncodeToString(roleSum[:]) + ".json"
+	return filename, nil
+}
+
+func writeToCache(roleArn string, data []byte) error {
+	filename, err := getCacheFilename(roleArn)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(filename, data, 0600)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func readFromCache(roleArn string) (string, error) {
+	filename, err := getCacheFilename(roleArn)
+	if err != nil {
+		return "", err
+	}
+
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return "", err
+	}
+
+	var cred TemporaryCredential
+	err = json.Unmarshal(data, &cred)
+	if err != nil {
+		return "", err
+	}
+
+	if time.Now().After(cred.Expiration) {
+		return "", errors.New("credential expired")
+	}
+
+	return string(data), nil
+}
+
+type TemporaryCredential struct {
+	Version         int       `json:"Version"`
+	AccessKeyId     string    `json:"AccessKeyId"`
+	SecretAccessKey string    `json:"SecretAccessKey"`
+	SessionToken    string    `json:"SessionToken"`
+	Expiration      time.Time `json:"Expiration"`
+}
+
 var (
 	serviceAccountEmail string
 	roleArn             string
@@ -115,13 +174,24 @@ var (
 )
 
 func main() {
+	flag.CommandLine.SetOutput(os.Stderr)
 	flag.StringVar(&roleArn, "r", "", "Role ARN to AssumeRole")
 	flag.DurationVar(&duration, "d", time.Hour, "Duration for a short-lived credential")
 	flag.StringVar(&serviceAccountEmail, "i", "", "GCP Service account email to impersonate. If not specified, use Application Default Credential.")
 	flag.Parse()
 
+	log.SetOutput(os.Stderr)
+
 	if len(roleArn) == 0 {
 		log.Fatalln("Argument Required: -r <Role ARN>")
+	}
+
+	cache, err := readFromCache(roleArn)
+	if err != nil {
+		log.Println(err)
+	} else {
+		fmt.Println(cache)
+		os.Exit(0)
 	}
 
 	ctx := context.Background()
@@ -155,10 +225,15 @@ func main() {
 		AccessKeyId:     *cred.AccessKeyId,
 		SecretAccessKey: *cred.SecretAccessKey,
 		SessionToken:    *cred.SessionToken,
-		Expiration:      cred.Expiration.Format(time.RFC3339),
+		Expiration:      *cred.Expiration,
 	}, "", "  ")
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	err = writeToCache(roleArn, out)
+	if err != nil {
+		log.Println("Failed to write cache")
 	}
 
 	fmt.Println(string(out))
