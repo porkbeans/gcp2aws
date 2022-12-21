@@ -44,3 +44,6 @@ region = <YOUR REGION>
 credential_process = /path/to/gcp2aws -r <ROLE ARN> -i <SERVICE ACCOUNT EMAIL>
 region = <YOUR REGION>
 ```
+
+# Similar projects
+- https://github.com/doitintl/janus
