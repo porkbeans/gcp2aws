@@ -37,6 +37,8 @@ resource "google_service_account" "example" {
   display_name = "Example service account"
 }
 
+# Allows an Gmail account to impersonate an service account.
+# https://cloud.google.com/iam/docs/impersonating-service-accounts#allow-impersonation
 data "google_iam_policy" "example" {
   binding {
     role    = "roles/iam.serviceAccountTokenCreator"
@@ -56,6 +58,10 @@ resource "aws_iam_role" "example" {
   path                 = "/"
   max_session_duration = "3600"
   managed_policy_arns  = ["arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"]
+
+  # Allows an service account to assume role.
+  # https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_iam-condition-keys.html#condition-keys-wif
+  # https://developers.google.com/identity/openid-connect/openid-connect#an-id-tokens-payload
   assume_role_policy = jsonencode(
     {
       "Statement" : [
