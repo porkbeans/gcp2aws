@@ -17,7 +17,7 @@ SYNOPSIS
     gcp2aws -r <ROLE ARN> [-i <SERVICE ACCOUNT EMAIL>] [-d <DURATION>]
 
 OPTIONS
-    -r <ROLE_ARN>
+    -r <ROLE ARN>
         Role ARN to AssumeRoleWithWebIdentity.
     -i <SERVICE ACCOUNT EMAIL>
         Service account email to impersonate.
