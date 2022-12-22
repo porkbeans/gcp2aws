@@ -35,7 +35,7 @@ AssumeRole with impersonated GCP service account identity.
 
 `~/.aws/config`
 ```text
-[example]
+[profile example]
 credential_process = /path/to/gcp2aws -r <ROLE ARN> -i <SERVICE ACCOUNT EMAIL>
 region = <YOUR REGION>
 ```
