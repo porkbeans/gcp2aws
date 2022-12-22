@@ -14,13 +14,13 @@ AWS credential helper for GCP.
 
 ```text
 SYNOPSIS
-    gcp2aws -r <ROLE ARN> [-i <SERVICE ACCOUNT EMAIL>] [-d <DURATION>]
+    gcp2aws -i <SERVICE ACCOUNT EMAIL> -r <ROLE ARN> [-d <DURATION>]
 
 OPTIONS
-    -r <ROLE ARN>
-        Role ARN to AssumeRoleWithWebIdentity.
     -i <SERVICE ACCOUNT EMAIL>
         Service account email to impersonate.
+    -r <ROLE ARN>
+        Role ARN to AssumeRoleWithWebIdentity.
     -d <DURATION>
         Credential duration. Accept format for Go time.ParseDuration.
         See https://pkg.go.dev/time#ParseDuration
