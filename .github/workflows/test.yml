@@ -19,9 +19,6 @@ jobs:
       - run: go build -v
       - uses: google-github-actions/auth@v1
         with:
-          token_format: id_token
-          id_token_audience: gcp2aws
-          id_token_include_email: true
           workload_identity_provider: ${{secrets.GCP2AWS_GCP_WORKLOAD_IDENTITY_PROVIDER}}
           service_account: ${{secrets.GCP2AWS_GCP_GITHUB_ACTIONS_SERVICE_ACCOUNT_EMAIL}}
       - uses: paambaati/codeclimate-action@v3.2.0
@@ -33,3 +30,4 @@ jobs:
         with:
           coverageCommand: go test -v -cover -coverprofile cover.out
           coverageLocations: ${{github.workspace}}/cover.out:gocov
+          prefix: github.com/${{github.repository}}
