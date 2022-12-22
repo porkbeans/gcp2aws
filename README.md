@@ -29,15 +29,8 @@ OPTIONS
 # Examples
 See [Example Terraform](./example/main.tf) to set up GCP Service Account and AWS IAM Role.
 
-## AssumeRole with application default credential
-`~/.aws/config`
-```text
-[example]
-credential_process = /path/to/gcp2aws -r <ROLE ARN>
-region = <YOUR REGION>
-```
+AssumeRole with impersonated GCP service account identity.
 
-## AssumeRole with impersonated GCP service account identity
 `~/.aws/config`
 ```text
 [example]
