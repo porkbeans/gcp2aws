@@ -1,0 +1,28 @@
+---
+name: Build & Test
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - run: git fetch --force --tags
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.19.4'
+          cache: true
+      - run: go build -v
+      - uses: google-github-actions/auth@v0.4.0
+        with:
+          workload_identity_provider: ${{secrets.GCP2AWS_GCP_WORKLOAD_IDENTITY_PROVIDER}}
+          service_account: ${{secrets.GCP2AWS_GCP_GITHUB_ACTIONS_SERVICE_ACCOUNT_EMAIL}}
+      - uses: paambaati/codeclimate-action@v3.2.0
+        env:
+          CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
+          GCP2AWS_GCP_SERVICE_ACCOUT_EMAIL: ${{secrets.GCP2AWS_GCP_SERVICE_ACCOUT_EMAIL}}
+          GCP2AWS_AWS_ROLE_ARN: ${{secrets.GCP2AWS_AWS_ROLE_ARN}}
+        with:
+          coverageCommand: go test -v -cover -coverprofile cover.out
+          coverageLocations: ${{github.workspace}}/cover.out:gocov

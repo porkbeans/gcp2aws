@@ -143,6 +143,9 @@ override.tf.json
 terraform.rc
 
 
+secret.env
 .terraform.lock.hcl
 dist/
 gcp2aws
+cover.out
+cover.html
