@@ -20,25 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go-v2/service/sts/types"
-	"golang.org/x/oauth2/google"
 )
-
-// Get OIDC ID token for Application Default Credential
-// https://developers.google.com/identity/openid-connect/openid-connect#exchangecode
-func getDefaultIdToken() (string, error) {
-	ctx := context.Background()
-	ts, err := google.DefaultTokenSource(ctx, credentials.DefaultAuthScopes()...)
-	if err != nil {
-		return "", err
-	}
-
-	token, err := ts.Token()
-	if err != nil {
-		return "", err
-	}
-
-	return token.Extra("id_token").(string), nil
-}
 
 // Get OIDC ID token for a service account with impersonation
 // You need "roles/iam.serviceAccountTokenCreator" role for your account.
@@ -74,7 +56,7 @@ func extractEmailFromIdToken(idToken string) (string, error) {
 	segments := strings.Split(idToken, ".")
 	body := jwtBody{}
 
-	err := json.NewDecoder(base64.NewDecoder(base64.URLEncoding, strings.NewReader(segments[1]))).Decode(&body)
+	err := json.NewDecoder(base64.NewDecoder(base64.RawURLEncoding, strings.NewReader(segments[1]))).Decode(&body)
 	if err != nil {
 		return "", err
 	}
@@ -186,8 +168,13 @@ func exec() int {
 
 	log.SetOutput(os.Stderr)
 
+	if len(serviceAccountEmail) == 0 {
+		log.Println("Argument Required: -i <SERVICE ACCOUNT EMAIL>")
+		return 1
+	}
+
 	if len(roleArn) == 0 {
-		log.Println("Argument Required: -r <Role ARN>")
+		log.Println("Argument Required: -r <ROLE ARN>")
 		return 1
 	}
 
@@ -208,25 +195,16 @@ func exec() int {
 		return 0
 	}
 
-	defaultIdToken, err := getDefaultIdToken()
+	idToken, err := getImpersonatedIdToken("gcp2aws", serviceAccountEmail)
 	if err != nil {
 		log.Println(err)
 		return 1
 	}
 
-	email, err := extractEmailFromIdToken(defaultIdToken)
+	email, err := extractEmailFromIdToken(idToken)
 	if err != nil {
 		log.Println(err)
 		return 1
-	}
-
-	idToken := defaultIdToken
-	if len(serviceAccountEmail) != 0 {
-		idToken, err = getImpersonatedIdToken(email, serviceAccountEmail)
-		if err != nil {
-			log.Println(err)
-			return 1
-		}
 	}
 
 	resp, err := assumeRole(roleArn, email, idToken, duration)

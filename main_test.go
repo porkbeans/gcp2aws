@@ -13,25 +13,6 @@ var (
 	GcpServiceAccoutEmailForTest = os.Getenv("GCP2AWS_GCP_SERVICE_ACCOUT_EMAIL")
 )
 
-func TestGetDefaultIdToken(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		_, err := getDefaultIdToken()
-		if err != nil {
-			t.Log(err)
-			t.Fail()
-		}
-	})
-
-	t.Run("fail", func(t *testing.T) {
-		t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "/tmp/notfound.json")
-		_, err := getDefaultIdToken()
-		if err == nil {
-			t.Fail()
-		}
-		t.Log(err)
-	})
-}
-
 func TestGetImpersonatedIdToken(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		_, err := getImpersonatedIdToken("gcp2aws", GcpServiceAccoutEmailForTest)
@@ -60,9 +41,9 @@ func TestGetImpersonatedIdToken(t *testing.T) {
 }
 
 func mockJwt(body string) string {
-	return base64.URLEncoding.EncodeToString([]byte("header")) + "." +
-		base64.URLEncoding.EncodeToString([]byte(body)) + "." +
-		base64.URLEncoding.EncodeToString([]byte("signature"))
+	return base64.RawURLEncoding.EncodeToString([]byte("header")) + "." +
+		base64.RawURLEncoding.EncodeToString([]byte(body)) + "." +
+		base64.RawURLEncoding.EncodeToString([]byte("signature"))
 }
 
 func TestExtractEmailFromIdToken(t *testing.T) {
@@ -223,6 +204,17 @@ func TestExec(t *testing.T) {
 		}
 	})
 
+	t.Run("fail with lack of service account email", func(t *testing.T) {
+		clearCache(AwsRoleArnForTest)
+
+		_ = flag.Set("i", "")
+		_ = flag.Set("r", "")
+		_ = flag.Set("d", "1h")
+		if exec() != 1 {
+			t.Fail()
+		}
+	})
+
 	t.Run("fail with invalid gcp credential path", func(t *testing.T) {
 		t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "/tmp/notfound.json")
 		clearCache(AwsRoleArnForTest)
@@ -238,9 +230,9 @@ func TestExec(t *testing.T) {
 	t.Run("fail with lack of role arn", func(t *testing.T) {
 		clearCache(AwsRoleArnForTest)
 
-		_ = flag.Set("i", "")
+		_ = flag.Set("i", GcpServiceAccoutEmailForTest)
 		_ = flag.Set("r", "")
-		_ = flag.Set("d", "")
+		_ = flag.Set("d", "1h")
 		if exec() != 1 {
 			t.Fail()
 		}
