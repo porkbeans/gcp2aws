@@ -27,6 +27,7 @@ jobs:
       - uses: paambaati/codeclimate-action@v3.2.0
         env:
           CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
+          AWS_REGION: ${{secrets.AWS_REGION}}
           GCP2AWS_GCP_SERVICE_ACCOUT_EMAIL: ${{secrets.GCP2AWS_GCP_SERVICE_ACCOUT_EMAIL}}
           GCP2AWS_AWS_ROLE_ARN: ${{secrets.GCP2AWS_AWS_ROLE_ARN}}
         with:
