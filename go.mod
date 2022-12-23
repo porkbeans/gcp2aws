@@ -6,7 +6,6 @@ require (
 	cloud.google.com/go/iam v0.9.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.6
 	github.com/aws/aws-sdk-go-v2/service/sts v1.17.7
-	golang.org/x/oauth2 v0.3.0
 )
 
 require (
@@ -29,6 +28,7 @@ require (
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/net v0.4.0 // indirect
+	golang.org/x/oauth2 v0.3.0 // indirect
 	golang.org/x/sys v0.3.0 // indirect
 	golang.org/x/text v0.5.0 // indirect
 	google.golang.org/api v0.105.0 // indirect
