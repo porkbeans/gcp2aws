@@ -13,9 +13,9 @@ var (
 	GcpServiceAccoutEmailForTest = os.Getenv("GCP2AWS_GCP_SERVICE_ACCOUT_EMAIL")
 )
 
-func TestGetImpersonatedIdToken(t *testing.T) {
+func TestGetIdToken(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		_, err := getImpersonatedIdToken("gcp2aws", GcpServiceAccoutEmailForTest)
+		_, err := getIdToken("gcp2aws", GcpServiceAccoutEmailForTest)
 		if err != nil {
 			t.Log(err)
 			t.Fail()
@@ -24,7 +24,7 @@ func TestGetImpersonatedIdToken(t *testing.T) {
 
 	t.Run("fail", func(t *testing.T) {
 		t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "/tmp/notfound.json")
-		_, err := getImpersonatedIdToken("", "invalid@example.com")
+		_, err := getIdToken("", "invalid@example.com")
 		if err == nil {
 			t.Log(err)
 			t.Fail()
@@ -32,7 +32,7 @@ func TestGetImpersonatedIdToken(t *testing.T) {
 	})
 
 	t.Run("fail", func(t *testing.T) {
-		_, err := getImpersonatedIdToken("", "invalid@example.com")
+		_, err := getIdToken("", "invalid@example.com")
 		if err == nil {
 			t.Log(err)
 			t.Fail()
@@ -154,11 +154,24 @@ func TestReadFromCache(t *testing.T) {
 		t.Log(err)
 	})
 
-	t.Run("fail with env vars", func(t *testing.T) {
+	t.Run("fail with permission", func(t *testing.T) {
 		t.Setenv("XDG_CACHE_HOME", "/root/.cache")
 
 		clearCache(AwsRoleArnForTest)
 		cred := TemporaryCredential{}
+		err := readFromCache(AwsRoleArnForTest, &cred)
+		if err == nil {
+			t.Fail()
+		}
+		t.Log(err)
+	})
+
+	t.Run("fail with expired cache", func(t *testing.T) {
+		cred := mockCredential()
+		cred.Expiration = time.Now().Add(-6 * time.Hour)
+		_ = writeToCache(AwsRoleArnForTest, cred)
+
+		cred = TemporaryCredential{}
 		err := readFromCache(AwsRoleArnForTest, &cred)
 		if err == nil {
 			t.Fail()
@@ -181,20 +194,6 @@ func TestExec(t *testing.T) {
 	})
 
 	t.Run("success with valid cache", func(t *testing.T) {
-		_ = flag.Set("i", GcpServiceAccoutEmailForTest)
-		_ = flag.Set("r", AwsRoleArnForTest)
-		_ = flag.Set("d", "1h")
-		_ = flag.Set("q", "true")
-		if exec() != 0 {
-			t.Fail()
-		}
-	})
-
-	t.Run("success with expired cache", func(t *testing.T) {
-		cred := mockCredential()
-		cred.Expiration = time.Now().Add(-6 * time.Hour)
-		_ = writeToCache(AwsRoleArnForTest, cred)
-
 		_ = flag.Set("i", GcpServiceAccoutEmailForTest)
 		_ = flag.Set("r", AwsRoleArnForTest)
 		_ = flag.Set("d", "1h")

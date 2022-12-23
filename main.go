@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -25,7 +26,7 @@ import (
 // Get OIDC ID token for a service account with impersonation
 // You need "roles/iam.serviceAccountTokenCreator" role for your account.
 // https://cloud.google.com/iam/docs/impersonating-service-accounts#allow-impersonation
-func getImpersonatedIdToken(audience string, serviceAccountEmail string) (string, error) {
+func getIdToken(audience string, serviceAccountEmail string) (string, error) {
 	ctx := context.Background()
 	gcpIamClient, err := credentials.NewIamCredentialsClient(ctx)
 	if err != nil {
@@ -90,6 +91,40 @@ func assumeRole(roleArn string, roleSessionName string, token string, duration t
 	return resp.Credentials, nil
 }
 
+type TemporaryCredential struct {
+	Version         int       `json:"Version"`
+	AccessKeyId     string    `json:"AccessKeyId"`
+	SecretAccessKey string    `json:"SecretAccessKey"`
+	SessionToken    string    `json:"SessionToken"`
+	Expiration      time.Time `json:"Expiration"`
+}
+
+func getAwsCredential(serviceAccountEmail string, roleArn string, duration time.Duration, cred *TemporaryCredential) error {
+	idToken, err := getIdToken("gcp2aws", serviceAccountEmail)
+	if err != nil {
+		return err
+	}
+
+	email, err := extractEmailFromIdToken(idToken)
+	if err != nil {
+		return err
+	}
+
+	resp, err := assumeRole(roleArn, email, idToken, duration)
+	if err != nil {
+		return err
+	}
+
+	// https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sourcing-external.html
+	cred.Version = 1
+	cred.AccessKeyId = *resp.AccessKeyId
+	cred.SecretAccessKey = *resp.SecretAccessKey
+	cred.SessionToken = *resp.SessionToken
+	cred.Expiration = *resp.Expiration
+
+	return nil
+}
+
 func getCacheFilename(roleArn string) (string, error) {
 	cacheDir, err := os.UserCacheDir()
 	if err != nil {
@@ -137,15 +172,11 @@ func readFromCache(roleArn string, cred *TemporaryCredential) error {
 		return err
 	}
 
-	return nil
-}
+	if time.Now().After(cred.Expiration) {
+		err = errors.New("credential expired")
+	}
 
-type TemporaryCredential struct {
-	Version         int       `json:"Version"`
-	AccessKeyId     string    `json:"AccessKeyId"`
-	SecretAccessKey string    `json:"SecretAccessKey"`
-	SessionToken    string    `json:"SessionToken"`
-	Expiration      time.Time `json:"Expiration"`
+	return err
 }
 
 var (
@@ -160,13 +191,14 @@ func init() {
 	flag.StringVar(&roleArn, "r", os.Getenv("GCP2AWS_AWS_ROLE_ARN"), "Role ARN to AssumeRole")
 	flag.DurationVar(&duration, "d", time.Hour, "Duration for a short-lived credential")
 	flag.BoolVar(&quiet, "q", false, "Suppress output.")
+
+	flag.CommandLine.SetOutput(os.Stderr)
+
+	log.SetOutput(os.Stderr)
 }
 
 func exec() int {
-	flag.CommandLine.SetOutput(os.Stderr)
 	flag.Parse()
-
-	log.SetOutput(os.Stderr)
 
 	if len(serviceAccountEmail) == 0 {
 		log.Println("Argument Required: -i <SERVICE ACCOUNT EMAIL>")
@@ -183,43 +215,21 @@ func exec() int {
 		out = io.Discard
 	}
 
-	var cache = TemporaryCredential{}
-	err := readFromCache(roleArn, &cache)
+	cred := TemporaryCredential{}
+
+	err := readFromCache(roleArn, &cred)
 	if err != nil {
 		log.Println(err)
-	} else if time.Now().After(cache.Expiration) {
-		log.Println("Credential expired. Trying to get a new credential.")
 	} else {
-		cacheJson, _ := json.Marshal(cache)
+		cacheJson, _ := json.Marshal(cred)
 		_, _ = fmt.Fprintln(out, string(cacheJson))
 		return 0
 	}
 
-	idToken, err := getImpersonatedIdToken("gcp2aws", serviceAccountEmail)
+	err = getAwsCredential(serviceAccountEmail, roleArn, duration, &cred)
 	if err != nil {
 		log.Println(err)
 		return 1
-	}
-
-	email, err := extractEmailFromIdToken(idToken)
-	if err != nil {
-		log.Println(err)
-		return 1
-	}
-
-	resp, err := assumeRole(roleArn, email, idToken, duration)
-	if err != nil {
-		log.Println(err)
-		return 1
-	}
-
-	// https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sourcing-external.html
-	cred := TemporaryCredential{
-		Version:         1,
-		AccessKeyId:     *resp.AccessKeyId,
-		SecretAccessKey: *resp.SecretAccessKey,
-		SessionToken:    *resp.SessionToken,
-		Expiration:      *resp.Expiration,
 	}
 
 	_ = writeToCache(roleArn, cred)
