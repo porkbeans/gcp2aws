@@ -187,7 +187,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&serviceAccountEmail, "i", os.Getenv("GCP2AWS_GCP_SERVICE_ACCOUT_EMAIL"), "GCP Service account email to impersonate. If not specified, use Application Default Credential.")
+	flag.StringVar(&serviceAccountEmail, "i", os.Getenv("GCP2AWS_GCP_SERVICE_ACCOUNT_EMAIL"), "GCP Service account email to impersonate. If not specified, use Application Default Credential.")
 	flag.StringVar(&roleArn, "r", os.Getenv("GCP2AWS_AWS_ROLE_ARN"), "Role ARN to AssumeRole")
 	flag.DurationVar(&duration, "d", time.Hour, "Duration for a short-lived credential")
 	flag.BoolVar(&quiet, "q", false, "Suppress output.")

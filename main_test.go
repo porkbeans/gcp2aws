@@ -9,13 +9,13 @@ import (
 )
 
 var (
-	AwsRoleArnForTest            = os.Getenv("GCP2AWS_AWS_ROLE_ARN")
-	GcpServiceAccoutEmailForTest = os.Getenv("GCP2AWS_GCP_SERVICE_ACCOUT_EMAIL")
+	AwsRoleArnForTest             = os.Getenv("GCP2AWS_AWS_ROLE_ARN")
+	GcpServiceAccountEmailForTest = os.Getenv("GCP2AWS_GCP_SERVICE_ACCOUNT_EMAIL")
 )
 
 func TestGetIdToken(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		_, err := getIdToken("gcp2aws", GcpServiceAccoutEmailForTest)
+		_, err := getIdToken("gcp2aws", GcpServiceAccountEmailForTest)
 		if err != nil {
 			t.Log(err)
 			t.Fail()
@@ -184,7 +184,7 @@ func TestExec(t *testing.T) {
 	t.Run("success without cache", func(t *testing.T) {
 		clearCache(AwsRoleArnForTest)
 
-		_ = flag.Set("i", GcpServiceAccoutEmailForTest)
+		_ = flag.Set("i", GcpServiceAccountEmailForTest)
 		_ = flag.Set("r", AwsRoleArnForTest)
 		_ = flag.Set("d", "1h")
 		_ = flag.Set("q", "true")
@@ -194,7 +194,7 @@ func TestExec(t *testing.T) {
 	})
 
 	t.Run("success with valid cache", func(t *testing.T) {
-		_ = flag.Set("i", GcpServiceAccoutEmailForTest)
+		_ = flag.Set("i", GcpServiceAccountEmailForTest)
 		_ = flag.Set("r", AwsRoleArnForTest)
 		_ = flag.Set("d", "1h")
 		_ = flag.Set("q", "true")
@@ -218,7 +218,7 @@ func TestExec(t *testing.T) {
 		t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "/tmp/notfound.json")
 		clearCache(AwsRoleArnForTest)
 
-		_ = flag.Set("i", GcpServiceAccoutEmailForTest)
+		_ = flag.Set("i", GcpServiceAccountEmailForTest)
 		_ = flag.Set("r", AwsRoleArnForTest)
 		_ = flag.Set("d", "1h")
 		if exec() != 1 {
@@ -229,7 +229,7 @@ func TestExec(t *testing.T) {
 	t.Run("fail with lack of role arn", func(t *testing.T) {
 		clearCache(AwsRoleArnForTest)
 
-		_ = flag.Set("i", GcpServiceAccoutEmailForTest)
+		_ = flag.Set("i", GcpServiceAccountEmailForTest)
 		_ = flag.Set("r", "")
 		_ = flag.Set("d", "1h")
 		if exec() != 1 {
@@ -240,7 +240,7 @@ func TestExec(t *testing.T) {
 	t.Run("fail with invalid role arn", func(t *testing.T) {
 		clearCache(AwsRoleArnForTest)
 
-		_ = flag.Set("i", GcpServiceAccoutEmailForTest)
+		_ = flag.Set("i", GcpServiceAccountEmailForTest)
 		_ = flag.Set("r", "invalid role arn")
 		_ = flag.Set("d", "1h")
 		if exec() != 1 {
@@ -262,7 +262,7 @@ func TestExec(t *testing.T) {
 	t.Run("fail with invalid duration", func(t *testing.T) {
 		clearCache(AwsRoleArnForTest)
 
-		_ = flag.Set("i", GcpServiceAccoutEmailForTest)
+		_ = flag.Set("i", GcpServiceAccountEmailForTest)
 		_ = flag.Set("r", AwsRoleArnForTest)
 		_ = flag.Set("d", "1s")
 		if exec() != 1 {
