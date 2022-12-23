@@ -179,6 +179,18 @@ func readFromCache(roleArn string, cred *TemporaryCredential) error {
 	return err
 }
 
+func validateMandatoryArgs(serviceAccountEmail string, roleArn string) error {
+	if len(serviceAccountEmail) == 0 {
+		return errors.New("argument required: -i <SERVICE ACCOUNT EMAIL>")
+	}
+
+	if len(roleArn) == 0 {
+		return errors.New("argument required: -r <ROLE ARN>")
+	}
+
+	return nil
+}
+
 var (
 	serviceAccountEmail string
 	roleArn             string
@@ -200,13 +212,9 @@ func init() {
 func exec() int {
 	flag.Parse()
 
-	if len(serviceAccountEmail) == 0 {
-		log.Println("Argument Required: -i <SERVICE ACCOUNT EMAIL>")
-		return 1
-	}
-
-	if len(roleArn) == 0 {
-		log.Println("Argument Required: -r <ROLE ARN>")
+	err := validateMandatoryArgs(serviceAccountEmail, roleArn)
+	if err != nil {
+		log.Println(err)
 		return 1
 	}
 
@@ -217,7 +225,7 @@ func exec() int {
 
 	cred := TemporaryCredential{}
 
-	err := readFromCache(roleArn, &cred)
+	err = readFromCache(roleArn, &cred)
 	if err != nil {
 		log.Println(err)
 	} else {
