@@ -12,6 +12,11 @@ AWS credential helper for GCP.
 - AWS
   - IAM Roles that allow service accounts to `sts:AssumeRoleWithWebIdentity`
 
+# Installation
+```
+go install github.com/porkbeans/gcp2aws@latest
+```
+
 # Usage
 
 ```text
@@ -39,6 +44,19 @@ AssumeRole with impersonated GCP service account identity.
 credential_process = /path/to/gcp2aws -r <ROLE ARN> -i <SERVICE ACCOUNT EMAIL>
 region = <YOUR REGION>
 ```
+
+# Development
+
+## Required tools
+- [go](https://go.dev/) for compiling and testing
+- [GNU make](https://www.gnu.org/software/make/) for task runner
+- [direnv](https://github.com/direnv/direnv) for loading environment variables for tests
+- [gibo](https://github.com/simonwhitaker/gibo) for updating .gitignore boilerplate
+
+## Preparing
+- `cp example.env secret.env` and edit each values in `secret.env` for your test environment.
+- `direnv allow`
+- `make test` to confirm that you can run tests
 
 # Similar projects
 - https://github.com/doitintl/janus
