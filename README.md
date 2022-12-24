@@ -13,8 +13,20 @@ AWS credential helper for GCP.
   - IAM Roles that allow service accounts to `sts:AssumeRoleWithWebIdentity`
 
 # Installation
-```
+## Install with `go install`
+```shell
 go install github.com/porkbeans/gcp2aws@latest
+```
+
+## Install from [GitHub Releases](https://github.com/porkbeans/gcp2aws/releases/latest) with `curl` and `tar`
+### Install locally (e.g. `~/.local/bin`)
+```shell
+curl -sSL '<TAR_GZ_URL>' | tar -xz -C ~/.local/bin gcp2aws
+```
+
+### Install globally (e.g. `/usr/local/bin`)
+```shell
+curl -sSL '<TAR_GZ_URL>' | sudo tar -xz --no-same-owner -C /usr/local/bin gcp2aws
 ```
 
 # Usage
