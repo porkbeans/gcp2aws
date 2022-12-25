@@ -48,7 +48,7 @@ OPTIONS
 ```
 
 # Examples
-See [Example Terraform](./example/main.tf) to set up GCP Service Account and AWS IAM Role.
+See [Terraform Example](./example/main.tf) to set up GCP Service Account and AWS IAM Role.
 
 AssumeRole with impersonated GCP service account identity.
 
