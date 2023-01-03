@@ -73,7 +73,7 @@ resource "aws_iam_role" "example" {
           },
           "Condition" : {
             "StringEquals" : {
-              "accounts.google.com:sub" : google_service_account.example.unique_id
+              "accounts.google.com:aud" : google_service_account.example.unique_id
             }
           }
         }
