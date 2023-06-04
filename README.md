@@ -10,23 +10,24 @@ Call AWS API using GCP credentials.
 
 # Requirements
 - GCP
+  - Authenticate with `gcloud auth application-default login`
   - Service Accounts that allow you to impersonate(`roles/iam.serviceAccountTokenCreator`)
 - AWS
   - IAM Roles that allow service accounts to `sts:AssumeRoleWithWebIdentity`
 
 # Installation
-## Install with `go install`
+## Using `go install`
 ```shell
 go install github.com/porkbeans/gcp2aws@latest
 ```
 
-## Install from [GitHub Releases](https://github.com/porkbeans/gcp2aws/releases/latest) with `curl` and `tar`
-### Install locally (e.g. `~/.local/bin`)
+## Using [GitHub Releases](https://github.com/porkbeans/gcp2aws/releases/latest)
+### For locally (e.g. `~/.local/bin`)
 ```shell
 curl -sSL '<TAR_GZ_URL>' | tar -xz -C ~/.local/bin gcp2aws
 ```
 
-### Install globally (e.g. `/usr/local/bin`)
+### For globally (e.g. `/usr/local/bin`)
 ```shell
 curl -sSL '<TAR_GZ_URL>' | sudo tar -xz --no-same-owner -C /usr/local/bin gcp2aws
 ```
