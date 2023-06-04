@@ -28,7 +28,7 @@ import (
 // https://cloud.google.com/iam/docs/impersonating-service-accounts#allow-impersonation
 func getIdToken(audience string, serviceAccountEmail string) (string, error) {
 	ctx := context.Background()
-	gcpIamClient, err := credentials.NewIamCredentialsClient(ctx)
+	client, err := credentials.NewIamCredentialsClient(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -41,7 +41,7 @@ func getIdToken(audience string, serviceAccountEmail string) (string, error) {
 	}
 
 	// https://cloud.google.com/iam/docs/create-short-lived-credentials-direct#sa-credentials-oidc
-	resp, err := gcpIamClient.GenerateIdToken(ctx, &req)
+	resp, err := client.GenerateIdToken(ctx, &req)
 	if err != nil {
 		return "", err
 	}
@@ -72,7 +72,7 @@ func assumeRole(roleArn string, roleSessionName string, token string, duration t
 		return nil, err
 	}
 
-	awsStsClient := sts.NewFromConfig(cfg)
+	client := sts.NewFromConfig(cfg)
 
 	durationSeconds := int32(duration.Seconds())
 
@@ -83,7 +83,7 @@ func assumeRole(roleArn string, roleSessionName string, token string, duration t
 		DurationSeconds:  &durationSeconds,
 	}
 
-	resp, err := awsStsClient.AssumeRoleWithWebIdentity(ctx, &req)
+	resp, err := client.AssumeRoleWithWebIdentity(ctx, &req)
 	if err != nil {
 		return nil, err
 	}
