@@ -24,7 +24,7 @@ jobs:
         with:
           workload_identity_provider: ${{secrets.GCP2AWS_GCP_WORKLOAD_IDENTITY_PROVIDER}}
           service_account: ${{secrets.GCP2AWS_GCP_GITHUB_ACTIONS_SERVICE_ACCOUNT_EMAIL}}
-      - uses: paambaati/codeclimate-action@v8
+      - uses: paambaati/codeclimate-action@v9
         env:
           CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
           AWS_REGION: ${{secrets.AWS_REGION}}
