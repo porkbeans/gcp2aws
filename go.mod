@@ -1,6 +1,6 @@
 module github.com/porkbeans/gcp2aws
 
-go 1.22
+go 1.24.1
 
 require (
 	cloud.google.com/go/iam v1.1.13
