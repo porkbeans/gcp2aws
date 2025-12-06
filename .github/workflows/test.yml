@@ -24,13 +24,12 @@ jobs:
         with:
           workload_identity_provider: ${{secrets.GCP2AWS_GCP_WORKLOAD_IDENTITY_PROVIDER}}
           service_account: ${{secrets.GCP2AWS_GCP_GITHUB_ACTIONS_SERVICE_ACCOUNT_EMAIL}}
-      - uses: paambaati/codeclimate-action@v9
+      - run: go test -v -coverprofile cover.out
         env:
-          CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
           AWS_REGION: ${{secrets.AWS_REGION}}
           GCP2AWS_GCP_SERVICE_ACCOUNT_EMAIL: ${{secrets.GCP2AWS_GCP_SERVICE_ACCOUNT_EMAIL}}
           GCP2AWS_AWS_ROLE_ARN: ${{secrets.GCP2AWS_AWS_ROLE_ARN}}
+      - uses: qltysh/qlty-action/coverage@v2
         with:
-          coverageCommand: go test -v -cover -coverprofile cover.out
-          coverageLocations: ${{github.workspace}}/cover.out:gocov
-          prefix: github.com/${{github.repository}}
+          oidc: true
+          files: cover.out
